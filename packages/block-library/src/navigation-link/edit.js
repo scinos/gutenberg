@@ -47,6 +47,7 @@ import { store as coreStore } from '@wordpress/core-data';
  */
 import { ItemSubmenuIcon } from './icons';
 import { name } from './block.json';
+import { isPostfixUnaryExpression } from 'typescript';
 
 const ALLOWED_BLOCKS = [ 'core/navigation-link' ];
 
@@ -221,6 +222,7 @@ export default function NavigationLinkEdit( {
 	clientId,
 } ) {
 	const {
+		id,
 		label,
 		type,
 		opensInNewTab,
@@ -242,6 +244,24 @@ export default function NavigationLinkEdit( {
 	const isDraggingWithin = useIsDraggingWithin( listItemRef );
 	const itemLabelPlaceholder = __( 'Add link…' );
 	const ref = useRef();
+
+	// console.log( type, id );
+
+	const isPostType =
+		( kind && 'post-type' === kind ) || ( type && 'post' === type );
+	const linkHasId = id && ! isNaN( id );
+	const postStatus = useSelect( ( select ) => {
+		if ( isPostType ) {
+			const { getEntityRecord } = select( coreStore );
+			const entityRecord = getEntityRecord( 'postType', type, id );
+
+			return entityRecord?.status;
+		}
+
+		return null;
+	} );
+
+	const isInvalid = isPostType && linkHasId && 'publish' !== postStatus;
 
 	const {
 		isAtMaxNesting,
@@ -399,7 +419,7 @@ export default function NavigationLinkEdit( {
 		},
 	} );
 
-	if ( ! url ) {
+	if ( ! url || isInvalid ) {
 		blockProps.onClick = () => setIsLinkOpen( true );
 	}
 
@@ -423,7 +443,7 @@ export default function NavigationLinkEdit( {
 	);
 
 	const classes = classnames( 'wp-block-navigation-link__content', {
-		'wp-block-navigation-link__placeholder': ! url,
+		'wp-block-navigation-link__placeholder': ! url || isInvalid,
 	} );
 
 	let missingText = '';
@@ -511,7 +531,7 @@ export default function NavigationLinkEdit( {
 				{ /* eslint-disable jsx-a11y/anchor-is-valid */ }
 				<a className={ classes }>
 					{ /* eslint-enable */ }
-					{ ! url ? (
+					{ ! url || isInvalid ? (
 						<div className="wp-block-navigation-link__placeholder-text">
 							<KeyboardShortcuts
 								shortcuts={ {
@@ -520,6 +540,12 @@ export default function NavigationLinkEdit( {
 								} }
 							/>
 							{ missingText }
+							{ isInvalid && (
+								<span className="wp-block-navigation-link__invalid-item">
+									{ ' ' }
+									(Invalid)
+								</span>
+							) }
 						</div>
 					) : (
 						<RichText
