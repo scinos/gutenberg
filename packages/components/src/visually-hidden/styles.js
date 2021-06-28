@@ -1,17 +1,14 @@
 /**
  * External dependencies
  */
-// Disable reason: Temporarily disable for existing usages
-// until we remove them as part of https://github.com/WordPress/gutenberg/issues/30503#deprecating-emotion-css
-// eslint-disable-next-line no-restricted-imports
-import { css } from '@emotion/css';
+import styled from '@emotion/styled';
 
 /**
  * Internal dependencies
  */
 import { COLORS } from '../utils/colors-values';
 
-export const VisuallyHidden = css`
+export const VisuallyHidden = styled.div`
 	border: 0;
 	clip: rect( 1px, 1px, 1px, 1px );
 	-webkit-clip-path: inset( 50% );
