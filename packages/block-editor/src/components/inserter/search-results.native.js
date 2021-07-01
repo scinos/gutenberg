@@ -29,14 +29,13 @@ function InserterSearchResults( {
 		[ rootClientId, filterValue ]
 	);
 
-	const {
-		items,
-		decrementBlockTypeImpressionCount,
-	} = useBlockTypeImpressions( blockTypes );
+	const { items, trackBlockTypeSelected } = useBlockTypeImpressions(
+		blockTypes
+	);
 
 	const handleSelect = ( ...args ) => {
 		const [ { name } ] = args;
-		decrementBlockTypeImpressionCount( name );
+		trackBlockTypeSelected( name );
 		onSelect( ...args );
 	};
 
