@@ -7,6 +7,7 @@ import memize from 'memize';
  * WordPress dependencies
  */
 import RNReactNativeGutenbergBridge, {
+	requestBlockTypeImpressions,
 	subscribeParentGetHtml,
 	subscribeParentToggleHTMLMode,
 	subscribeUpdateHtml,
@@ -158,6 +159,11 @@ class NativeEditorProvider extends Component {
 			this.props.createSuccessNotice(
 				'Show Editor Help request received by JS!'
 			);
+		} );
+
+		// Request current block impressions from native app
+		requestBlockTypeImpressions( ( impressions ) => {
+			updateSettings( { impressions } );
 		} );
 	}
 
@@ -324,6 +330,7 @@ export default compose( [
 			getBlockIndex,
 			getSelectedBlockClientId,
 			getGlobalBlockCount,
+			getSettings: getBlockEditorSettings,
 		} = select( blockEditorStore );
 
 		const selectedBlockClientId = getSelectedBlockClientId();
@@ -333,6 +340,7 @@ export default compose( [
 			blocks: getEditorBlocks(),
 			title: getEditedPostAttribute( 'title' ),
 			getEditedPostContent,
+			getBlockEditorSettings,
 			selectedBlockIndex: getBlockIndex( selectedBlockClientId ),
 			blockCount: getGlobalBlockCount(),
 			paragraphCount: getGlobalBlockCount( 'core/paragraph' ),
