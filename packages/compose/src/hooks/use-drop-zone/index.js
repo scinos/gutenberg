@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * WordPress dependencies
  */
@@ -7,6 +8,11 @@ import { useRef } from '@wordpress/element';
  * Internal dependencies
  */
 import useRefEffect from '../use-ref-effect';
+
+/**
+ * External dependencies
+ */
+import { throttle } from 'lodash';
 
 /* eslint-disable jsdoc/valid-types */
 /**
@@ -29,6 +35,17 @@ function useFreshRef( value ) {
 	ref.current = value;
 	return ref;
 }
+//TODO: only add this detection once, find a good spot for reuse
+const intentState = { x: null, y: null, isHovering: false };
+function isHovering( event ) {
+	const x = intentState?.x ?? event.clientX;
+	const y = intentState?.y ?? event.clientY;
+	intentState.x = event.clientX;
+	intentState.y = event.clientY;
+	intentState.isHovering =
+		Math.abs( event.clientY - y ) + Math.abs( event.clientX - x ) <= 5;
+}
+document.addEventListener( 'dragover', throttle( isHovering, 100 ) );
 
 /**
  * A hook to facilitate drag and drop handling.
@@ -94,6 +111,7 @@ export default function useDropZone( {
 				return false;
 			}
 
+			//TODO: this is just to highlight the potential performance gains
 			function maybeDragStart( /** @type {DragEvent} */ event ) {
 				if ( isDragging ) {
 					return;
@@ -138,12 +156,16 @@ export default function useDropZone( {
 				}
 			}
 
+			//TODO: this still fires too many times
 			function onDragOver( /** @type {DragEvent} */ event ) {
 				// Only call onDragOver for the innermost hovered drop zones.
-				if ( ! event.defaultPrevented && onDragOverRef.current ) {
+				if (
+					! event.defaultPrevented &&
+					onDragOverRef.current &&
+					intentState.isHovering
+				) {
 					onDragOverRef.current( event );
 				}
-
 				// Prevent the browser default while also signalling to parent
 				// drop zones that `onDragOver` is already handled.
 				event.preventDefault();
